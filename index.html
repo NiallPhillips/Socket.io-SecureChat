@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8"/>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+  <div id="settingsButton" class ="clickable">
+    <div id="innerSettings"></div>
+  </div>
+  <section id="chatArea">
+    <div id="chatScroll"></div>
+  </section>
+  <div id="inputArea">
+    <input id="textInput" type ="text"></input>
+    <input id="attachmentButton" type="image" src="attachment.png" alt="Attachment"></input>
+    <button id="sendButton" class="clickable">Send</button>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>

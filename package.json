@@ -1,0 +1,9 @@
+{
+  "name": "SecureChatApp",
+  "version": "0.0.1",
+  "description": "EE6032 Secure Chat Application",
+  "dependencies": {
+    "express": "^4.16.4",
+    "socket.io": "^2.2.0"
+  }
+}
