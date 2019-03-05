@@ -4,14 +4,30 @@
   <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
-  <div id="settingsButton" class ="clickable">
-    <div id="innerSettings"></div>
+  <div id="modalContainer">
+    <div id="modal">
+      <input id="nameEntry" type="text" placeholder="Your Name here"></input>
+      <button id="startButton" class="clickable">Enter</button>
+    </div>
+  </div>
+  <div id="settingsMenu" class="menu">
+    <div id="settingsButton" class ="clickable">
+      <div id="innerSettings"></div>
+    </div>
+    <div class="settingsOption">
+			<div id="switchText">Encrypt my Messages</div>
+				<label class="switch">
+					<input id ="encryptionBox" type="checkbox" name="encryption" value="encrypted">
+					<div class="slider round"></div>
+		  </label>
+    </div>
   </div>
   <section id="chatArea">
     <div id="chatScroll"></div>
   </section>
   <div id="inputArea">
     <input id="textInput" type ="text"></input>
+    <input id="fileSelect" onchange="readImageFile(this)" type="file" src="attachment.png" alt="Attachment" style="display:none;"></input>
     <input id="attachmentButton" type="image" src="attachment.png" alt="Attachment"></input>
     <button id="sendButton" class="clickable">Send</button>
   </div>
