@@ -43,9 +43,9 @@ document.addEventListener("keydown", function(event) {
 	}
 });
 
-document.onclick = function(e) {
-  console.log(e.target.id);
-}
+// document.onclick = function(e) {
+//   console.log(e.target.id);
+// }
 
 function send() {
   if(textBox.value != "") {
@@ -70,6 +70,7 @@ function displayMyMessage(message) {
       chatScroll.innerHTML += "<div class='myMessage'><div class='ye'></div>"+message+"</div>";
     }
   }
+  chatScroll.scrollTop = chatScroll.scrollHeight;
 }
 
 function displayReceivedMessage(message) {
@@ -83,6 +84,7 @@ function displayReceivedMessage(message) {
       chatScroll.innerHTML += "<div class='receivedMessage'><div class='boi'></div>"+message+"</div>";
     }
   }
+  chatScroll.scrollTop = chatScroll.scrollHeight;
 }
 
 function readImageFile(input) {
@@ -113,6 +115,7 @@ function sendFile(file,data){
 // When a 'base64 file' event is received, run this function
 socket.on('base64 file', function(msg) {
 	displayImage(msg.file);
+  console.log("Image Received: "+msg.fileName);
 });
 
 // Create an HTML img element and use it to display the image
@@ -123,14 +126,16 @@ function displayImage(src) {
 	chatScroll.innerHTML += "<div class='imageContainer'></div>"; // Attach the image Container to the chatBox
 	chatScroll.getElementsByClassName("imageContainer")[chatScroll.getElementsByClassName("imageContainer").length-1].appendChild(img);
 	// This line gets the array of elements of className 'imageContainer' and appends 'img' to the last 'imageContainer'
+  chatScroll.scrollTop = chatScroll.scrollHeight;
 }
 
 // This is same as above but displays the Image frm this client instead of received images
 function displayMyImage(src) {
-	console.log("Showing Image");
+	// console.log("Showing Image: "+ );
   var img = document.createElement("img");
 	img.classList.add("image");
 	img.src = src;
 	chatScroll.innerHTML += "<div class='myImageContainer'></div>"; // Attach the image Container to the chatBox
 	chatScroll.getElementsByClassName("myImageContainer")[chatScroll.getElementsByClassName("myImageContainer").length-1].appendChild(img);
+  chatScroll.scrollTop = chatScroll.scrollHeight;
 }
