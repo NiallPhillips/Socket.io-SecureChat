@@ -14,6 +14,36 @@ io.on('connection', function(socket){
     console.log('user disconnected');
   });
 
+  socket.on('publicKey', function(msg){
+    console.log('Public Key received from '+msg.userName);
+    socket.broadcast.emit('publicKey', msg );
+  });
+
+  socket.on('returnPublicKey', function(msg){
+    console.log('Public Key received from '+msg.userName);
+    socket.broadcast.emit('returnPublicKey', msg);
+  });
+
+  socket.on('protocolStep1', function(msg){
+    console.log('Protocol step 1 received');
+    socket.broadcast.emit('protocolStep1', msg );
+  });
+
+  socket.on('protocolStep2', function(msg){
+    console.log('Protocol step 2 received');
+    socket.broadcast.emit('protocolStep2', msg );
+  });
+
+  socket.on('protocolStep3', function(msg){
+    console.log('Protocol step 3 received');
+    socket.broadcast.emit('protocolStep3', msg );
+  });
+
+  socket.on('AESKeyShared', function(msg){
+    console.log(msg);
+    socket.broadcast.emit('AESKeyShared', msg );
+  });
+
   socket.on('chat message', function(msg){
     // console.log('message: ' + msg);
     socket.broadcast.emit('chat message', msg);

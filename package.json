@@ -3,7 +3,12 @@
   "version": "0.0.1",
   "description": "EE6032 Secure Chat Application",
   "dependencies": {
+    "aes256": "^1.0.4",
     "express": "^4.16.4",
+    "js-sha256": "^0.9.0",
+    "node-cryptico": "^1.0.1",
+    "node-rsa": "^1.0.5",
+    "randomstring": "^1.1.5",
     "socket.io": "^2.2.0"
   }
 }
