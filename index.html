@@ -15,10 +15,17 @@
     <div id="settingsButton" class ="clickable">
       <div id="innerSettings"></div>
     </div>
-    <div class="settingsOption">
+    <div class="settingsOption1">
 			<div id="switchText">Encrypt my Messages</div>
 				<label class="switch">
 					<input id ="encryptionBox" type="checkbox" name="encryption" value="encrypted">
+					<div class="slider round"></div>
+		  </label>
+    </div>
+    <div class="settingsOption2">
+			<div id="switchText">Print Debug</div>
+				<label class="switch">
+					<input id ="debugBox" type="checkbox" name="debug" value="off">
 					<div class="slider round"></div>
 		  </label>
     </div>
@@ -28,7 +35,7 @@
   </section>
   <div id="inputArea">
     <input id="textInput" type ="text"></input>
-    <input id="fileSelect" onchange="readImageFile(this)" type="file" src="attachment.png" alt="Attachment" style="display:none;"></input>
+    <input id="fileSelect" type="file" src="attachment.png" alt="Attachment" style="display:none;"></input>
     <input id="attachmentButton" type="image" src="attachment.png" alt="Attachment"></input>
     <button id="sendButton" class="clickable">Send</button>
   </div>

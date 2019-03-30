@@ -52,16 +52,8 @@ io.on('connection', function(socket){
   // When a socket (user) sends an image file...
   socket.on('base64 file', function (msg) {
     console.log('received base64 file from user');
-    //~ socket.username = msg.username;
     // The sending socket broadcasts the base64 file to all other connections
-    socket.broadcast.emit('base64 file',
-
-        {
-          file: msg.file,
-          fileName: msg.fileName,
-        }
-
-    );
+    socket.broadcast.emit('base64 file',msg);
   });
 
 });

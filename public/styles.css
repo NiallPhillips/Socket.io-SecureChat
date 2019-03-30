@@ -125,7 +125,7 @@ html,body {
   background-color: var(--main-bg-colour);
 }
 
-.settingsOption{
+.settingsOption1{
 	position:absolute;
 	right:40px;
 	top: 80px;
@@ -137,6 +137,19 @@ html,body {
 	justify-content:center;
 	align-items:center;
 }
+.settingsOption2{
+	position:absolute;
+	right:40px;
+	top: 160px;
+	white-space: nowrap;
+	overflow:hidden;
+	width:220px;
+	display: flex;
+  flex-direction: column;
+	justify-content:center;
+	align-items:center;
+}
+
 #switchText{
 	color:white;
 	flex:1;

@@ -1,9 +1,26 @@
+//
+// SecureChat Application (EE6032)
+//
+// Authors: Niall Phillips
+//          Efa Nyong
+//          Bhagyashree Angadi
+//
+// Application to allow for RSA key-pair generation and exchange between
+// two clients. Implemented protocol allows for mutual generation of a shared
+// AES encryption key that is used after the initial key sharing protocol
+// has completed. The application allows for AES encryption/ decryption of both
+// text and files.
+//
 
+
+// Create Script Variables
 var socket =io();
 var textBox = document.getElementById('textInput');
 var chatScroll = document.getElementById('chatScroll');
 var settingsbtn = document.getElementById('settingsButton');
 var settings = document.getElementById('settingsMenu');
+var encryptionSwitch = document.getElementById('encryptionBox');
+var debugOn = document.getElementById('debugBox');
 
 var sha256 = require('js-sha256');
 var cryptico = require('node-cryptico');
@@ -24,6 +41,8 @@ var keys = 0;
 var aesSharedKey = null;
 var firstHalfAES = null;
 
+
+// Set up event handlers for DOM elements
 document.getElementById('startButton').onclick = function() {
   screenName = document.getElementById('nameEntry').value;
   myPassword = document.getElementById('password').value;
@@ -38,6 +57,10 @@ document.getElementById('sendButton').onclick = function() {
   send();
 }
 
+document.getElementById('fileSelect').addEventListener("change", function(event) {
+	readImageFile(document.getElementById('fileSelect'));
+});
+
 document.getElementById('attachmentButton').onclick = function() {
   document.getElementById('fileSelect').click();
 }
@@ -45,10 +68,8 @@ document.getElementById('attachmentButton').onclick = function() {
 settingsbtn.onclick = function() {
   if(settings.classList.contains("settingsOpened")){
 		settings.classList.remove("settingsOpened");
-    // console.log("Settings closed");
 		} else {
 		settings.classList.add("settingsOpened");
-    // console.log("Settings opened");
   }
 }
 
@@ -58,21 +79,44 @@ document.addEventListener("keydown", function(event) {
 	}
 });
 
+// Function to send text
 function send() {
   if(textBox.value != "") {
     displayMyMessage(textBox.value);
-    socket.emit('chat message', textBox.value);
-    console.log(hash(textBox.value));
+    var msg = {};
+    if(encryptionSwitch.checked) {  // Encrypt
+      msg.text = aes_encrypt(aesSharedKey,textBox.value);
+      msg.encryptedFlag = true;
+    } else {                        // Don't encrypt
+      msg.text = textBox.value;
+      msg.encryptedFlag = false;
+    }
+    if(debugOn.checked) {
+      console.log('Message being transmitted: '+msg.text);
+    }
+    socket.emit('chat message', msg);
     textBox.value = "";
   }
 }
 
+// Listener function to handle incoming chat messages
 socket.on('chat message', function(msg) {
   if(chatRunning) {
-    displayReceivedMessage(msg);
+    if(msg.encryptedFlag) {
+      if(debugOn.checked) {
+        console.log('Encrypted chat message received: '+msg.text);
+      }
+      displayReceivedMessage(aes_decrypt(aesSharedKey,msg.text));
+    } else {
+      if(debugOn.checked) {
+        console.log('Plaintext chat message received: '+msg.text);
+      }
+      displayReceivedMessage(msg.text);
+    }
   }
 });
 
+// Function to add message to the chat area
 function displayMyMessage(message) {
   if(document.getElementById('chatScroll').children.length==0) {
     chatScroll.innerHTML += "<div class='myMessage'><div class='ye'></div>"+message+"</div>";
@@ -120,17 +164,37 @@ function readImageFile(input) {
 // This function emits the base 64 file object to the server
 // it accepts a file name and the data of the file
 function sendFile(file,data){
-	var msg = {}; // create a message object
-	msg.file = data;
-	msg.fileName = file.name;
+	var msg = {}; // create a message object#
+  if(encryptionSwitch.checked) {
+    console.log('Encrypting image...');
+    msg.file = aes_encrypt(aesSharedKey,data);
+    msg.fileName = aes_encrypt(aesSharedKey,file.name);
+    msg.encryptedFlag = true;
+  } else {
+    msg.file = data;
+    msg.fileName = file.name;
+    msg.encryptedFlag = false;
+  }
 	socket.emit('base64 file', msg); // send the file to the server
 }
 
 // When a 'base64 file' event is received, run this function
 socket.on('base64 file', function(msg) {
   if(chatRunning) {
-    displayImage(msg.file);
-    console.log("Image Received: "+msg.fileName);
+    if(msg.encryptedFlag) {
+      var decryptedFile = aes_decrypt(aesSharedKey,msg.file);
+      var decryptedFileName = aes_decrypt(aesSharedKey,msg.fileName);
+      displayImage(decryptedFile);
+      if(debugOn.checked) {
+        console.log("Encrypted Image Received: "+decryptedFileName);
+      }
+    } else {
+      displayImage(msg.file);
+      if(debugOn.checked) {
+        console.log("Image Received: "+msg.fileName);
+      }
+    }
+
   }
 });
 
@@ -179,39 +243,39 @@ function verifySignature(signedMessage) {
 }
 
 function aes_encrypt(key,plaintext) {
-  console.log("Pre AES encryption: "+plaintext);
+  if(debugOn.checked) {
+    console.log("Pre AES encryption: "+plaintext);
+  }
   var cipher = aes256.encrypt(key,plaintext);
-  console.log("Post AES encryption: "+cipher);
+  if(debugOn.checked) {
+    console.log("Post AES encryption: "+cipher);
+  }
   return cipher;
 }
 
 function aes_decrypt(key,encrypted) {
-  console.log("Pre AES decryption: "+encrypted);
+  if(debugOn.checked) {
+    console.log("Pre AES decryption: "+encrypted);
+  }
   var plaintext = aes256.decrypt(key,encrypted);
-  console.log("Post AES dencryption: "+plaintext);
+  if(debugOn.checked) {
+    console.log("Post AES dencryption: "+plaintext);
+  }
   return plaintext;
 }
 
 function generateRSAKeys(password) {
   myPrivateKey = cryptico.generateRSAKey(myPassword, 1024);
   myPublicKey = cryptico.publicKeyString(myPrivateKey);
-  // console.log("My Public Key: "+myPublicKey);
+  console.log("My Public Key: "+myPublicKey);
 }
 
 function emitPublicKey(key, isReturn) {
   msg = {}
   msg.publicKey = key;
-  // console.log('Emitting Key: '+ key);
-  // console.log('type of key: '+ typeof key);
 	msg.hashedKey = hash(key);
-  // console.log('Emitting hashed Key: '+ hash(key));
-  // console.log('type of hashed key: '+ typeof hash(key));
 	msg.userName = screenName;
-  // console.log('Emitting name: '+ screenName);
-  // console.log('type of name: '+ typeof screenName);
   msg.hashedUserName = hash(screenName);
-  // console.log('Emitting hashed name: '+ hash(screenName));
-  // console.log('type of hashedName: '+ typeof hash(screenName));
   if(isReturn) {
     socket.emit('returnPublicKey', msg);
     console.log('Returning public Key');
@@ -223,13 +287,7 @@ function emitPublicKey(key, isReturn) {
 
 socket.on('publicKey', function(msg) {
   if(chatRunning) {
-    // Check integrity of publickey hash and userName
     console.log('Public Key Received');
-    // console.log('publicKey: '+msg.publicKey);
-    // console.log('hashedKey: '+msg.hashedKey);
-    // console.log('userName: '+msg.userName);
-    // console.log('hashedUserName: '+msg.hashedUserName);
-
     if(verifyHash(msg.hashedKey,msg.publicKey) && verifyHash(msg.hashedUserName,msg.userName)) {
       console.log("Public Key Received for "+msg.userName);
       otherPublicKey = msg.publicKey;
@@ -242,11 +300,6 @@ socket.on('returnPublicKey', function(msg) {
   if(chatRunning) {
     // Check integrity of publickey hash and userName
     console.log('Returned public key received');
-    // console.log('publicKey: '+msg.publicKey);
-    // console.log('hashedKey: '+msg.hashedKey);
-    // console.log('userName: '+msg.userName);
-    // console.log('hashedUserName: '+msg.hashedUserName);
-
     if(verifyHash(msg.hashedKey,msg.publicKey) && verifyHash(msg.hashedUserName,msg.userName)) {
       console.log("Return public Key Received for "+msg.userName);
       otherPublicKey = msg.publicKey;
@@ -288,10 +341,6 @@ function protocolStep2(passA) {
   protocolStep3(passA,secondHalfAES);
 }
 
-socket.on('protocolStep2', function(msg) {
-
-});
-
 function protocolStep3(passA,passB) {
   console.log('Doing step 3');
   msg = {};
@@ -300,7 +349,6 @@ function protocolStep3(passA,passB) {
   msg.hashPassB = cryptico.encrypt(hash(passB),otherPublicKey,myPrivateKey).cipher;
   msg.hashResponse = cryptico.encrypt(hash(aes_encrypt(aesSharedKey,passA)),otherPublicKey,myPrivateKey).cipher;
   socket.emit('protocolStep3',msg);
-
 }
 
 socket.on('protocolStep3', function(msg) {
@@ -318,9 +366,9 @@ socket.on('protocolStep3', function(msg) {
       console.log(firstHalfAES);
       if(aes_decrypt(aesSharedKey,response) == firstHalfAES) {
         console.log('AES key is verified');
+        socket.emit('AESKeyShared','Both parties now have the shared AES key');
       } else {
         console.log('AES Key is not verified');
-        socket.emit('AESKeyShared','Both parties now have the shared AES key');
       }
     } else {
       console.log('Hashes not verified');
@@ -333,28 +381,3 @@ socket.on('protocolStep3', function(msg) {
 socket.on('AESKeyShared', function(msg) {
   console.log(msg);
 });
-
-// function testSignatures() {
-//   console.log("///////////////////////////////////////////////////////////////")
-//   var password1 = "this is my password";
-//   var key1 = cryptico.generateRSAKey(password1, 1024);
-//   var publicKey1 = cryptico.publicKeyString(key1);
-//   var myMessage = "This is text to be encrypted and signed";
-//   var password2 = "this is the other passphrase";
-//   var key2 = cryptico.generateRSAKey(password2, 1024);
-//   var publicKey2 = cryptico.publicKeyString(key2);
-//   console.log("Keys generated");
-//   var encryptionResult = cryptico.encrypt(myMessage,publicKey2,key1);
-//   console.log("Message encrypted");
-//
-//   var myCipher = encryptionResult.cipher;
-//   // var signature = cryptico.publicKeyID(myCipher.publickey);
-//   // console.log("Signature: "+signature);
-//   var dc = cryptico.decrypt(myCipher,key2);
-//   console.log("Other Signature: "+dc.signature);
-//   console.log("Signature string:  "+dc.publicKeyString);
-//   console.log("Signature compare: "+publicKey1);
-//   console.log("Decryption result:"+ dc.plaintext);
-//
-//   console.log("///////////////////////////////////////////////////////////////")
-// }
